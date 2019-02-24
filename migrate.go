@@ -5,7 +5,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql" // dialect
-	"github.com/sinardyas/golang-crud/controllers"
+	"github.com/sinardyas/golang-crud/models"
 )
 
 func init() {
@@ -14,9 +14,7 @@ func init() {
 		panic(err)
 	}
 
-	db.AutoMigrate(&controllers.User{})
-}
+	db.AutoMigrate(&models.User{})
 
-func main() {
 	fmt.Println("Migrate RUN")
 }

@@ -3,39 +3,42 @@ package controllers
 import (
 	"net/http"
 
+	"github.com/sinardyas/golang-crud/models"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql" // dialect
 )
 
-var db *gorm.DB
-var err error
-
-type User struct {
-	FirstName string `gorm:"size:255"`
-	LastName  string `gorm:"size:255"`
-	gorm.Model
+// UserController model
+type UserController struct {
+	db  *gorm.DB
+	err error
 }
 
-func (u User) Init(gormDB *gorm.DB, r *gin.RouterGroup) {
-	db = gormDB
-
-	r.GET("/", u.GetList)
-	r.POST("/", u.RegisterUser)
-}
-
-func (u User) GetList(c *gin.Context) {
-	data := db.Find(&[]User{})
-
-	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": data})
-}
-
-func (u User) RegisterUser(c *gin.Context) {
-	user := User{
-		FirstName: c.PostForm("firstName"),
-		LastName:  c.PostForm("lastName"),
+// Init : constructor
+func Init(gormDB *gorm.DB, router *gin.RouterGroup) {
+	userController := UserController{
+		db: gormDB,
 	}
 
-	result := db.Create(&user)
-	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": result.Value})
+	router.GET("/", userController.GetList)
+	router.POST("/", userController.RegisterUser)
+}
+
+// GetList : return list of all user
+func (userController UserController) GetList(context *gin.Context) {
+	data := userController.db.Find(&[]models.User{})
+
+	context.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": data})
+}
+
+// RegisterUser : create new user
+func (userController UserController) RegisterUser(context *gin.Context) {
+	user := models.User{
+		FirstName: context.PostForm("firstName"),
+		LastName:  context.PostForm("lastName"),
+	}
+
+	result := userController.db.Create(&user)
+	context.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": result.Value})
 }

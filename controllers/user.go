@@ -29,9 +29,9 @@ func Init(gormDB *gorm.DB, router *gin.RouterGroup) {
 
 // Get : return list of all user
 func (userController UserController) Get(context *gin.Context) {
-	data := userController.db.Find(&[]models.User{})
+	result := userController.db.Find(&[]models.User{})
 
-	context.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": data})
+	context.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": result})
 }
 
 // Create : create new user

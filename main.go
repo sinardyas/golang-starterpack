@@ -1,20 +1,23 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	"net/http"
+
+	"github.com/gorilla/mux"
 	_ "github.com/jinzhu/gorm/dialects/mysql" // dialect
 	"github.com/sinardyas/golang-crud/config"
 	"github.com/sinardyas/golang-crud/controllers"
+	"github.com/spf13/viper"
 )
 
+var database config.Database
+
 func main() {
-	router := gin.Default()
-	userRoute := router.Group("user")
+	router := mux.NewRouter()
 
 	config.ServiceConf()
 
-	var database config.Database
 	db := database.DatabaseInit()
-	controllers.Init(db, userRoute)
-	router.Run()
+	controllers.Init(db, router)
+	http.ListenAndServe("0.0.0.0:"+viper.GetString("PORT"), router)
 }

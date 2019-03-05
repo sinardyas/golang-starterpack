@@ -12,13 +12,13 @@ type Response struct {
 }
 
 func (r *Response) ResponseHandling(res http.ResponseWriter, status int, success bool, data interface{}) {
-	returnValue := Response{
+	result := Response{
 		Status:  status,
 		Success: success,
 		Data:    data,
 	}
 
-	parsedResult, _ := json.Marshal(returnValue)
+	parsedResult, _ := json.Marshal(result)
 	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(status)
 	res.Write(parsedResult)

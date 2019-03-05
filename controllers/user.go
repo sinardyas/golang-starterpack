@@ -3,6 +3,8 @@ package controllers
 import (
 	"net/http"
 
+	"gopkg.in/go-playground/validator.v9"
+
 	"github.com/gorilla/mux"
 
 	"github.com/sinardyas/golang-crud/helper"
@@ -10,6 +12,10 @@ import (
 
 	"github.com/jinzhu/gorm"
 )
+
+var validate = validator.New()
+var response helper.Response
+var validateRequest helper.ValidationRequest
 
 // UserController model
 type UserController struct {
@@ -33,20 +39,25 @@ func Init(gormDB *gorm.DB, r *mux.Router) {
 func (userController UserController) Get(res http.ResponseWriter, req *http.Request) {
 	result := userController.db.Find(&[]models.User{})
 
-	response := &helper.Response{}
-	response.ResponseHandling(res, 200, true, result)
+	response.ResponseHandling(res, http.StatusOK, true, result)
 }
 
 // Create : create new user
 func (userController UserController) Create(res http.ResponseWriter, req *http.Request) {
-	user := models.User{
+	user := &models.User{
 		FirstName: req.FormValue("firstName"),
 		LastName:  req.FormValue("lastName"),
+		UserName:  req.FormValue("userName"),
+	}
+
+	isValid := validateRequest.ValidateHandling(user)
+	if isValid != nil {
+		response.ResponseHandling(res, http.StatusBadRequest, false, isValid)
+		return
 	}
 
 	result := userController.db.Create(&user)
-	response := &helper.Response{}
-	response.ResponseHandling(res, 200, true, result)
+	response.ResponseHandling(res, http.StatusOK, true, result)
 }
 
 // Update : update record
@@ -58,11 +69,17 @@ func (userController UserController) Update(res http.ResponseWriter, req *http.R
 	updateParam := models.User{
 		FirstName: req.FormValue("firstName"),
 		LastName:  req.FormValue("lastName"),
+		UserName:  req.FormValue("userName"),
+	}
+
+	isValid := validateRequest.ValidateHandling(updateParam)
+	if isValid != nil {
+		response.ResponseHandling(res, http.StatusBadRequest, false, isValid)
+		return
 	}
 
 	result := userController.db.Model(&userModel).Updates(updateParam)
-	response := &helper.Response{}
-	response.ResponseHandling(res, 200, true, result)
+	response.ResponseHandling(res, http.StatusOK, true, result)
 }
 
 // Delete : delete record
@@ -72,6 +89,5 @@ func (userController UserController) Delete(res http.ResponseWriter, req *http.R
 	userController.db.First(&userModel, userID)
 
 	result := userController.db.Delete(&userModel)
-	response := &helper.Response{}
-	response.ResponseHandling(res, 200, true, result)
+	response.ResponseHandling(res, http.StatusOK, true, result)
 }

@@ -25,15 +25,15 @@ type UserController struct {
 }
 
 // Init : constructor
-func Init(gormDB *gorm.DB, r *mux.Router) {
+func Init(gormDB *gorm.DB, router *mux.Router) {
 	userController := UserController{
 		db: gormDB,
 	}
 
-	r.HandleFunc("/", userController.Get).Methods("GET")
-	r.HandleFunc("/", userController.Create).Methods("POST")
-	r.HandleFunc("/{id:[0-9]+}", userController.Update).Methods("PUT")
-	r.HandleFunc("/{id:[0-9]+}", userController.Delete).Methods("DELETE")
+	router.HandleFunc("/", userController.Get).Methods("GET")
+	router.HandleFunc("/", userController.Create).Methods("POST")
+	router.HandleFunc("/{id:[0-9]+}", userController.Update).Methods("PUT")
+	router.HandleFunc("/{id:[0-9]+}", userController.Delete).Methods("DELETE")
 }
 
 // Get : return list of all user

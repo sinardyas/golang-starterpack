@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"gopkg.in/go-playground/validator.v9"
@@ -38,6 +39,7 @@ func Init(gormDB *gorm.DB, r *mux.Router) {
 // Get : return list of all user
 func (userController UserController) Get(res http.ResponseWriter, req *http.Request) {
 	result := userController.db.Find(&[]models.User{})
+	fmt.Println(result)
 
 	response.ResponseHandling(res, http.StatusOK, true, result)
 }
@@ -53,6 +55,12 @@ func (userController UserController) Create(res http.ResponseWriter, req *http.R
 	isValid := validateRequest.ValidateHandling(user)
 	if isValid != nil {
 		response.ResponseHandling(res, http.StatusBadRequest, false, isValid)
+		return
+	}
+
+	isExist := userController.db.Where("user_name = ?", user.UserName).First(&models.User{})
+	if isExist.RowsAffected > 0 {
+		response.ResponseHandling(res, http.StatusBadRequest, false, "Username already exist!")
 		return
 	}
 
@@ -75,6 +83,12 @@ func (userController UserController) Update(res http.ResponseWriter, req *http.R
 	isValid := validateRequest.ValidateHandling(updateParam)
 	if isValid != nil {
 		response.ResponseHandling(res, http.StatusBadRequest, false, isValid)
+		return
+	}
+
+	isExist := userController.db.Where("user_name = ?", updateParam.UserName).First(&models.User{})
+	if isExist.RowsAffected > 0 {
+		response.ResponseHandling(res, http.StatusBadRequest, false, "Username already exist!")
 		return
 	}
 

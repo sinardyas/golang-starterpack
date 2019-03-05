@@ -21,7 +21,7 @@ func (database *Database) DatabaseInit() *gorm.DB {
 	database.User = viper.GetString("DB_USER")
 	database.Password = viper.GetString("DB_PASS")
 	database.Name = viper.GetString("DB_NAME")
-	database.url = database.User + ":" + database.Password + "@(" + database.Host + ":" + database.Port + ")/" + database.Name
+	database.url = database.User + ":" + database.Password + "@(" + database.Host + ":" + database.Port + ")/" + database.Name + "?charset=utf8&parseTime=True&loc=Local"
 
 	db, err := gorm.Open("mysql", database.url)
 	if err != nil {

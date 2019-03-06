@@ -8,13 +8,15 @@ import (
 type Response struct {
 	Status  int         `json:"status"`
 	Success bool        `json:"success"`
-	Data    interface{} `json:"message"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
 }
 
-func (r *Response) ResponseHandling(res http.ResponseWriter, status int, success bool, data interface{}) {
+func (r *Response) ResponseHandling(res http.ResponseWriter, status int, success bool, message string, data interface{}) {
 	result := Response{
 		Status:  status,
 		Success: success,
+		Message: message,
 		Data:    data,
 	}
 

@@ -7,7 +7,9 @@ import (
 // User : presists user data in database
 type User struct {
 	gorm.Model
-	FirstName string `gorm:"size:255" validate:"required"`
-	LastName  string `gorm:"size:255" validate:"required"`
-	UserName  string `gorm:"size:30" validate:"required"`
+	FirstName       string `gorm:"size:255" validate:"required"`
+	LastName        string `gorm:"size:255" validate:"required"`
+	UserName        string `gorm:"size:30" validate:"required"`
+	Password        string `gorm:"size:255" validate:"required" json:"-"`
+	ConfirmPassword string `gorm:"-" validate:"required" json:"-"`
 }

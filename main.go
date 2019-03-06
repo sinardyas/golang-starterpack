@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/sinardyas/golang-crud/config"
 	"github.com/sinardyas/golang-crud/controllers"
+	"github.com/sinardyas/golang-crud/models"
 	"github.com/spf13/viper"
 )
 
@@ -17,6 +18,7 @@ func main() {
 
 	config.ServiceConf()
 	db := database.DatabaseInit()
+	db.AutoMigrate(&models.User{})
 	controllers.Init(db, router)
 
 	fmt.Println("Server started at localhost:" + viper.GetString("PORT"))

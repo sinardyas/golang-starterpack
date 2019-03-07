@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/sinardyas/golang-crud/models"
+	"github.com/sinardyas/golang-crud/config"
 
-	"github.com/jinzhu/gorm"
+	"github.com/sinardyas/golang-crud/models"
 
 	"github.com/spf13/viper"
 
@@ -40,7 +40,7 @@ func (*Auth) GenerateToken(data interface{}) (string, error) {
 	return token, nil
 }
 
-func (*Auth) MiddlewareAuth(next http.HandlerFunc, gormDB *gorm.DB) http.HandlerFunc {
+func (*Auth) MiddlewareAuth(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		authorizationHeader := req.Header.Get("Authorization")
 		token, err := jwt.Parse(authorizationHeader, func(token *jwt.Token) (interface{}, error) {
@@ -62,7 +62,8 @@ func (*Auth) MiddlewareAuth(next http.HandlerFunc, gormDB *gorm.DB) http.Handler
 		fmt.Println(data["user_name"])
 
 		var user models.User
-		result := gormDB.Where("user_name = ?", data["user_name"]).Find(&user)
+		var db config.Database
+		result := db.DatabaseInit().Where("user_name = ?", data["user_name"]).Find(&user)
 
 		if result.RowsAffected == 0 {
 			response.ResponseHandling(res, http.StatusBadRequest, false, "User not found", nil)

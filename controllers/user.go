@@ -1,8 +1,9 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
+
+	"github.com/sinardyas/golang-crud/config"
 
 	"gopkg.in/go-playground/validator.v9"
 
@@ -10,8 +11,6 @@ import (
 
 	"github.com/sinardyas/golang-crud/helper"
 	"github.com/sinardyas/golang-crud/models"
-
-	"github.com/jinzhu/gorm"
 )
 
 var validate = validator.New()
@@ -19,32 +18,20 @@ var response helper.Response
 var validateRequest helper.ValidationRequest
 var passwordHandling helper.Password
 var auth helper.Auth
-var db *gorm.DB
+var db config.Database
 
 // UserController model
 type UserController struct{}
 
-// Init : constructor
-func Init(gormDB *gorm.DB, router *mux.Router) {
-	fmt.Println("Ïnit Function")
-	db = gormDB
-
-	router.HandleFunc("/", auth.MiddlewareAuth(Get, db)).Methods("GET")
-	router.HandleFunc("/", auth.MiddlewareAuth(Create, db)).Methods("POST")
-	router.HandleFunc("/{id:[0-9]+}", auth.MiddlewareAuth(Update, db)).Methods("PUT")
-	router.HandleFunc("/{id:[0-9]+}", auth.MiddlewareAuth(Delete, db)).Methods("DELETE")
-	router.HandleFunc("/login", Login).Methods("POST")
-}
-
 // Get : return list of all user
-func Get(res http.ResponseWriter, req *http.Request) {
-	result := db.Find(&[]models.User{})
+func (*UserController) Get(res http.ResponseWriter, req *http.Request) {
+	result := db.DatabaseInit().Find(&[]models.User{})
 
 	response.ResponseHandling(res, http.StatusOK, true, "Successfully get data", result)
 }
 
 // Create : create new user
-func Create(res http.ResponseWriter, req *http.Request) {
+func (*UserController) Create(res http.ResponseWriter, req *http.Request) {
 	user := &models.User{
 		FirstName:       req.FormValue("first_name"),
 		LastName:        req.FormValue("last_name"),
@@ -59,7 +46,7 @@ func Create(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	isExist := db.Where("user_name = ?", user.UserName).First(&models.User{})
+	isExist := db.DatabaseInit().Where("user_name = ?", user.UserName).First(&models.User{})
 	if isExist.RowsAffected > 0 {
 		response.ResponseHandling(res, http.StatusBadRequest, false, "Username already exist", nil)
 		return
@@ -73,15 +60,15 @@ func Create(res http.ResponseWriter, req *http.Request) {
 	hashedPassword := passwordHandling.HashAndSalt([]byte(user.Password))
 	user.Password = hashedPassword
 
-	result := db.Create(&user)
+	result := db.DatabaseInit().Create(&user)
 	response.ResponseHandling(res, http.StatusOK, true, "Successfully created", result)
 }
 
 // Update : update record
-func Update(res http.ResponseWriter, req *http.Request) {
+func (*UserController) Update(res http.ResponseWriter, req *http.Request) {
 	var userModel models.User
 	userID := mux.Vars(req)["id"]
-	db.First(&userModel, userID)
+	db.DatabaseInit().First(&userModel, userID)
 
 	updateParam := models.User{
 		FirstName: req.FormValue("first_name"),
@@ -95,28 +82,28 @@ func Update(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	isExist := db.Where("user_name = ?", updateParam.UserName).First(&models.User{})
+	isExist := db.DatabaseInit().Where("user_name = ?", updateParam.UserName).First(&models.User{})
 	if isExist.RowsAffected > 0 {
 		response.ResponseHandling(res, http.StatusBadRequest, false, "Username already exist", nil)
 		return
 	}
 
-	result := db.Model(&userModel).Updates(updateParam)
+	result := db.DatabaseInit().Model(&userModel).Updates(updateParam)
 	response.ResponseHandling(res, http.StatusOK, true, "Successfully updated", result)
 }
 
 // Delete : delete record
-func Delete(res http.ResponseWriter, req *http.Request) {
+func (*UserController) Delete(res http.ResponseWriter, req *http.Request) {
 	var userModel models.User
 	userID := mux.Vars(req)["id"]
-	db.First(&userModel, userID)
+	db.DatabaseInit().First(&userModel, userID)
 
-	result := db.Delete(&userModel)
+	result := db.DatabaseInit().Delete(&userModel)
 	response.ResponseHandling(res, http.StatusOK, true, "Successfully deleted", result)
 }
 
 // Login : login and get token auth
-func Login(res http.ResponseWriter, req *http.Request) {
+func (*UserController) Login(res http.ResponseWriter, req *http.Request) {
 	var user models.User
 	loginParam := models.Login{
 		UserName: req.FormValue("user_name"),
@@ -129,7 +116,7 @@ func Login(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	result := db.Where("user_name = ?", loginParam.UserName).Find(&user)
+	result := db.DatabaseInit().Where("user_name = ?", loginParam.UserName).Find(&user)
 	if result.RowsAffected == 0 {
 		response.ResponseHandling(res, http.StatusBadRequest, false, "User not found", nil)
 		return

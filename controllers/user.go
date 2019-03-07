@@ -18,6 +18,7 @@ var validate = validator.New()
 var response helper.Response
 var validateRequest helper.ValidationRequest
 var passwordHandling helper.Password
+var auth helper.Auth
 var db *gorm.DB
 
 // UserController model
@@ -25,19 +26,19 @@ type UserController struct{}
 
 // Init : constructor
 func Init(gormDB *gorm.DB, router *mux.Router) {
+	fmt.Println("Ïnit Function")
 	db = gormDB
 
-	router.HandleFunc("/", Get).Methods("GET")
-	router.HandleFunc("/", Create).Methods("POST")
-	router.HandleFunc("/{id:[0-9]+}", Update).Methods("PUT")
-	router.HandleFunc("/{id:[0-9]+}", Delete).Methods("DELETE")
+	router.HandleFunc("/", auth.MiddlewareAuth(Get, db)).Methods("GET")
+	router.HandleFunc("/", auth.MiddlewareAuth(Create, db)).Methods("POST")
+	router.HandleFunc("/{id:[0-9]+}", auth.MiddlewareAuth(Update, db)).Methods("PUT")
+	router.HandleFunc("/{id:[0-9]+}", auth.MiddlewareAuth(Delete, db)).Methods("DELETE")
 	router.HandleFunc("/login", Login).Methods("POST")
 }
 
 // Get : return list of all user
 func Get(res http.ResponseWriter, req *http.Request) {
 	result := db.Find(&[]models.User{})
-	fmt.Println(result)
 
 	response.ResponseHandling(res, http.StatusOK, true, "Successfully get data", result)
 }
@@ -45,11 +46,11 @@ func Get(res http.ResponseWriter, req *http.Request) {
 // Create : create new user
 func Create(res http.ResponseWriter, req *http.Request) {
 	user := &models.User{
-		FirstName:       req.FormValue("firstName"),
-		LastName:        req.FormValue("lastName"),
-		UserName:        req.FormValue("userName"),
+		FirstName:       req.FormValue("first_name"),
+		LastName:        req.FormValue("last_name"),
+		UserName:        req.FormValue("user_name"),
 		Password:        req.FormValue("password"),
-		ConfirmPassword: req.FormValue("confirmPassword"),
+		ConfirmPassword: req.FormValue("confirm_password"),
 	}
 
 	isValid := validateRequest.ValidateHandling(user)
@@ -60,12 +61,12 @@ func Create(res http.ResponseWriter, req *http.Request) {
 
 	isExist := db.Where("user_name = ?", user.UserName).First(&models.User{})
 	if isExist.RowsAffected > 0 {
-		response.ResponseHandling(res, http.StatusBadRequest, false, "Username already exist!", nil)
+		response.ResponseHandling(res, http.StatusBadRequest, false, "Username already exist", nil)
 		return
 	}
 
 	if user.Password != user.ConfirmPassword {
-		response.ResponseHandling(res, http.StatusBadRequest, false, "Password not match!", nil)
+		response.ResponseHandling(res, http.StatusBadRequest, false, "Password not match", nil)
 		return
 	}
 
@@ -83,9 +84,9 @@ func Update(res http.ResponseWriter, req *http.Request) {
 	db.First(&userModel, userID)
 
 	updateParam := models.User{
-		FirstName: req.FormValue("firstName"),
-		LastName:  req.FormValue("lastName"),
-		UserName:  req.FormValue("userName"),
+		FirstName: req.FormValue("first_name"),
+		LastName:  req.FormValue("last_name"),
+		UserName:  req.FormValue("user_name"),
 	}
 
 	isValid := validateRequest.ValidateHandling(updateParam)
@@ -96,7 +97,7 @@ func Update(res http.ResponseWriter, req *http.Request) {
 
 	isExist := db.Where("user_name = ?", updateParam.UserName).First(&models.User{})
 	if isExist.RowsAffected > 0 {
-		response.ResponseHandling(res, http.StatusBadRequest, false, "Username already exist!", nil)
+		response.ResponseHandling(res, http.StatusBadRequest, false, "Username already exist", nil)
 		return
 	}
 
@@ -114,10 +115,11 @@ func Delete(res http.ResponseWriter, req *http.Request) {
 	response.ResponseHandling(res, http.StatusOK, true, "Successfully deleted", result)
 }
 
+// Login : login and get token auth
 func Login(res http.ResponseWriter, req *http.Request) {
 	var user models.User
-	loginParam := models.User{
-		UserName: req.FormValue("userName"),
+	loginParam := models.Login{
+		UserName: req.FormValue("user_name"),
 		Password: req.FormValue("password"),
 	}
 
@@ -139,5 +141,12 @@ func Login(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	response.ResponseHandling(res, http.StatusOK, true, "Logged in", result)
+	token, err := auth.GenerateToken(&user)
+	if err != nil {
+		response.ResponseHandling(res, http.StatusInternalServerError, false, "Login failed", err)
+		return
+	}
+
+	loginParam.Token = token
+	response.ResponseHandling(res, http.StatusOK, true, "Logged in", loginParam)
 }

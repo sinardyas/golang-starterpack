@@ -11,16 +11,15 @@ import (
 	"github.com/spf13/viper"
 )
 
-var database config.Database
-
 func main() {
 	router := mux.NewRouter()
-
 	config.ServiceConf()
+
+	var database config.Database
 	db := database.DatabaseInit()
 	db.AutoMigrate(&models.User{})
-	controllers.Init(db, router)
 
+	controllers.Init(db, router)
 	fmt.Println("Server started at localhost:" + viper.GetString("PORT"))
 	http.ListenAndServe("0.0.0.0:"+viper.GetString("PORT"), router)
 }

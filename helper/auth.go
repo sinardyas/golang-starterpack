@@ -20,7 +20,6 @@ var response Response
 type Auth struct {
 	jwt.StandardClaims
 	Data interface{} `json:"data"`
-	DB   *gorm.DB    `json:"-"`
 }
 
 func (*Auth) GenerateToken(data interface{}) (string, error) {
@@ -49,7 +48,7 @@ func (*Auth) MiddlewareAuth(next http.HandlerFunc, gormDB *gorm.DB) http.Handler
 		})
 
 		if err != nil {
-			response.ResponseHandling(res, http.StatusBadRequest, false, "Failed to Authenticate", nil)
+			response.ResponseHandling(res, http.StatusBadRequest, false, "Failed to Authenticate", err.Error())
 			return
 		}
 
@@ -62,11 +61,8 @@ func (*Auth) MiddlewareAuth(next http.HandlerFunc, gormDB *gorm.DB) http.Handler
 		data := claims["data"].(map[string]interface{})
 		fmt.Println(data["user_name"])
 
-		auths := Auth{
-			DB: gormDB,
-		}
 		var user models.User
-		result := auths.DB.Where("user_name = ?", data["user_name"]).Find(&user)
+		result := gormDB.Where("user_name = ?", data["user_name"]).Find(&user)
 
 		if result.RowsAffected == 0 {
 			response.ResponseHandling(res, http.StatusBadRequest, false, "User not found", nil)

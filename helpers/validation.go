@@ -1,4 +1,4 @@
-package helper
+package helpers
 
 import (
 	"gopkg.in/go-playground/validator.v9"

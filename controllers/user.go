@@ -4,20 +4,20 @@ import (
 	"net/http"
 
 	"github.com/sinardyas/golang-crud/config"
+	"github.com/sinardyas/golang-crud/helpers"
 
 	"gopkg.in/go-playground/validator.v9"
 
 	"github.com/gorilla/mux"
 
-	"github.com/sinardyas/golang-crud/helper"
 	"github.com/sinardyas/golang-crud/models"
 )
 
 var validate = validator.New()
-var response helper.Response
-var validateRequest helper.ValidationRequest
-var passwordHandling helper.Password
-var auth helper.Auth
+var response helpers.Response
+var validateRequest helpers.ValidationRequest
+var passwordHandling helpers.Password
+var auth helpers.Auth
 var db config.Database
 
 // UserController model

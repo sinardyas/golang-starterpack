@@ -1,8 +1,7 @@
-package helper
+package helpers
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -59,7 +58,6 @@ func (*Auth) MiddlewareAuth(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		data := claims["data"].(map[string]interface{})
-		fmt.Println(data["user_name"])
 
 		var user models.User
 		var db config.Database

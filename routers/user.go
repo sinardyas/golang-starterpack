@@ -3,7 +3,7 @@ package routers
 import (
 	"github.com/gorilla/mux"
 	"github.com/sinardyas/golang-crud/controllers"
-	"github.com/sinardyas/golang-crud/helper"
+	"github.com/sinardyas/golang-crud/helpers"
 )
 
 // TODO :
@@ -11,7 +11,7 @@ import (
 type UserRouter struct{}
 
 func (*UserRouter) UserRouterHandling(router *mux.Router) {
-	var auth helper.Auth
+	var auth helpers.Auth
 	var userController controllers.UserController
 
 	router.HandleFunc("/", auth.MiddlewareAuth(userController.Get)).Methods("GET")

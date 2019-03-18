@@ -3,7 +3,7 @@ package routers
 import (
 	"github.com/gorilla/mux"
 	"github.com/sinardyas/golang-crud/controllers"
-	middlewares "github.com/sinardyas/golang-crud/middleware"
+	"github.com/sinardyas/golang-crud/middlewares"
 )
 
 // TODO :

@@ -3,7 +3,7 @@ package controllers
 import (
 	"net/http"
 
-	middlewares "github.com/sinardyas/golang-crud/middleware"
+	"github.com/sinardyas/golang-crud/middlewares"
 
 	"github.com/sinardyas/golang-crud/config"
 	"github.com/sinardyas/golang-crud/helpers"

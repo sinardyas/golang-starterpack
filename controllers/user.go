@@ -3,6 +3,8 @@ package controllers
 import (
 	"net/http"
 
+	middlewares "github.com/sinardyas/golang-crud/middleware"
+
 	"github.com/sinardyas/golang-crud/config"
 	"github.com/sinardyas/golang-crud/helpers"
 
@@ -17,7 +19,7 @@ var validate = validator.New()
 var response helpers.Response
 var validateRequest helpers.ValidationRequest
 var passwordHandling helpers.Password
-var auth helpers.Auth
+var auth middlewares.Auth
 var db config.Database
 
 // UserController model
@@ -26,7 +28,6 @@ type UserController struct{}
 // Get : return list of all user
 func (*UserController) Get(res http.ResponseWriter, req *http.Request) {
 	result := db.DatabaseInit().Find(&[]models.User{})
-
 	response.ResponseHandling(res, http.StatusOK, true, "Successfully get data", result)
 }
 
@@ -105,6 +106,7 @@ func (*UserController) Delete(res http.ResponseWriter, req *http.Request) {
 // Login : login and get token auth
 func (*UserController) Login(res http.ResponseWriter, req *http.Request) {
 	var user models.User
+	var book []models.Book
 	loginParam := models.Login{
 		UserName: req.FormValue("user_name"),
 		Password: req.FormValue("password"),
@@ -134,6 +136,14 @@ func (*UserController) Login(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	errors := db.DatabaseInit().Model(&user).Related(&book).Error
+	if errors != nil {
+		response.ResponseHandling(res, http.StatusBadRequest, false, "Error occured!", errors)
+		return
+	}
+
+	user.Books = book
 	loginParam.Token = token
+	loginParam.UserData = user
 	response.ResponseHandling(res, http.StatusOK, true, "Logged in", loginParam)
 }

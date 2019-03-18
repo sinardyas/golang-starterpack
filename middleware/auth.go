@@ -1,20 +1,19 @@
-package helpers
+package middlewares
 
 import (
 	"context"
 	"net/http"
 	"time"
 
-	"github.com/sinardyas/golang-crud/config"
-
-	"github.com/sinardyas/golang-crud/models"
-
-	"github.com/spf13/viper"
+	"github.com/sinardyas/golang-crud/helpers"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/sinardyas/golang-crud/config"
+	"github.com/sinardyas/golang-crud/models"
+	"github.com/spf13/viper"
 )
 
-var response Response
+var response helpers.Response
 
 type Auth struct {
 	jwt.StandardClaims
@@ -39,7 +38,7 @@ func (*Auth) GenerateToken(data interface{}) (string, error) {
 	return token, nil
 }
 
-func (*Auth) MiddlewareAuth(next http.HandlerFunc) http.HandlerFunc {
+func (*Auth) MiddlewareAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		authorizationHeader := req.Header.Get("Authorization")
 		token, err := jwt.Parse(authorizationHeader, func(token *jwt.Token) (interface{}, error) {
@@ -68,7 +67,7 @@ func (*Auth) MiddlewareAuth(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		ctx := context.WithValue(context.Background(), "data", claims)
+		ctx := context.WithValue(context.Background(), "data", user)
 		req = req.WithContext(ctx)
 
 		next.ServeHTTP(res, req)

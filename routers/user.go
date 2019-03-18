@@ -3,21 +3,27 @@ package routers
 import (
 	"github.com/gorilla/mux"
 	"github.com/sinardyas/golang-crud/controllers"
-	"github.com/sinardyas/golang-crud/helpers"
+	middlewares "github.com/sinardyas/golang-crud/middleware"
 )
 
 // TODO :
 // separate router from controller
-type UserRouter struct{}
+type Route struct{}
 
-func (*UserRouter) UserRouterHandling(router *mux.Router) {
-	var auth helpers.Auth
+func (*Route) UserRouterHandling(router *mux.Router) {
+	var auth middlewares.Auth
+	var rbac middlewares.RBAC
 	var userController controllers.UserController
 
 	subrouter := router.PathPrefix("/user/").Subrouter()
-	subrouter.HandleFunc("/", auth.MiddlewareAuth(userController.Get)).Methods("GET")
-	subrouter.HandleFunc("/", auth.MiddlewareAuth(userController.Create)).Methods("POST")
-	subrouter.HandleFunc("/{id:[0-9]+}", auth.MiddlewareAuth(userController.Update)).Methods("PUT")
-	subrouter.HandleFunc("/{id:[0-9]+}", auth.MiddlewareAuth(userController.Delete)).Methods("DELETE")
-	subrouter.HandleFunc("/login", userController.Login).Methods("POST")
+
+	subrouter.Use(auth.MiddlewareAuth)
+	subrouter.Use(rbac.AccessLimit)
+
+	subrouter.HandleFunc("/", userController.Get).Methods("GET")
+	subrouter.HandleFunc("/", userController.Create).Methods("POST")
+	subrouter.HandleFunc("/{id:[0-9]+}", userController.Update).Methods("PUT")
+	subrouter.HandleFunc("/{id:[0-9]+}", userController.Delete).Methods("DELETE")
+
+	router.HandleFunc("/login", userController.Login).Methods("POST")
 }

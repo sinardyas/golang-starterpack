@@ -6,7 +6,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/sinardyas/golang-crud/config"
-	"github.com/sinardyas/golang-crud/models"
 	"github.com/sinardyas/golang-crud/routers"
 	"github.com/spf13/viper"
 )
@@ -15,13 +14,16 @@ func main() {
 	router := mux.NewRouter()
 	config.ServiceConf()
 
-	var route routers.UserRouter
+	var route routers.Route
 	var database config.Database
-	db := database.DatabaseInit()
-	db.AutoMigrate(&models.User{})
+	errors := database.DatabaseInit()
+	if errors == nil {
+		fmt.Println("Error when connecting to DB")
+	}
 
 	route.UserRouterHandling(router)
-	// controllers.Init(db, router)
+	route.BookRouterHandling(router)
+
 	fmt.Println("Server started at localhost:" + viper.GetString("PORT"))
 	http.ListenAndServe("0.0.0.0:"+viper.GetString("PORT"), router)
 }

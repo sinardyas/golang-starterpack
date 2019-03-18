@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql" // dialect
+	"github.com/sinardyas/golang-crud/models"
 	"github.com/spf13/viper"
 )
 
@@ -27,6 +28,9 @@ func (database *Database) DatabaseInit() *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
+
+	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.Book{})
 
 	return db
 }
